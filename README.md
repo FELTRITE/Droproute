@@ -1,4 +1,6 @@
 # Droproute
+
+<img src="https://raw.githubusercontent.com/feltrite/Droproute/master/droproute.jpg" width="300" align="right">
 automated VPN deployment (Digital Ocean account required)
 
 short for Droplet-Route,

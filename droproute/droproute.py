@@ -37,7 +37,7 @@ class DropRoute(requests.Session):
         with open(fpath, 'rb') as f:
             data = json.load(f)
 
-        if data.has_key("access_token") == False:
+        if not data.has_key("access_token"):
             access_token = self.__authenticate()
             self.__save_credentials(access_token)
             return access_token

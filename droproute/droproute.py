@@ -12,7 +12,7 @@ class DropRoute(requests.Session):
                              'Authorization':'Bearer {}'.format(self.access_token)
                              })
         self.__api_endpoint = "https://api.digitalocean.com/v2"
-        self.account = self.__request_account_data()
+        self.account = self.api('GET', 'account')
 
 
 
@@ -43,9 +43,6 @@ class DropRoute(requests.Session):
             return access_token
         return data['access_token']
 
-    def __request_account_data(self):
-        return self.request('get', "/".join([self.__api_endpoint, "account"])).json()
-
     def api(self, action, uri):
         """
         Handle api requests
@@ -55,4 +52,3 @@ class DropRoute(requests.Session):
         :return: json variable with respnse data
         """
         return self.request(action, "/".join([self.__api_endpoint, uri])).json()
-    

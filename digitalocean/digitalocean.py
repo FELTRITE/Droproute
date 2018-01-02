@@ -3,10 +3,10 @@ import json
 import os
 
 
-class DropRoute(requests.Session):
+class DigitalOcean(requests.Session):
 
     def __init__(self):
-        super(DropRoute, self).__init__()
+        super(DigitalOcean, self).__init__()
         self.access_token = self.__load_credential()
         self.headers.update({'Content-Type': 'application/json',
                              'Authorization':'Bearer {}'.format(self.access_token)

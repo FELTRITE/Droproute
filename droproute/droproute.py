@@ -1,16 +1,29 @@
+import requests
+import json
+import os
 
-class DropRoute():
+
+class DropRoute(requests.Session):
 
     def __init__(self):
+        super(DropRoute, self).__init__()
         self.access_token = self.__load_credential()
-        self.api = requests.Session()
-        self.api.headers.update({'Content-Type': 'application/json',
-                                 'Authorization':'Bearer {}'.format(self.access_token)
-                                 })
+        self.headers.update({'Content-Type': 'application/json',
+                             'Authorization':'Bearer {}'.format(self.access_token)
+                             })
+        self.__api_endpoint = "https://api.digitalocean.com/v2"
+        self.account = self.__request_account_data()
+
+
 
     def __authenticate(self):
         #TODO: if yer lazy - Direct user to token web page, else implement access grant flows
-        pass
+        #I know this is shitty
+        print "It seems You have yet to supply an Access token"
+        print "Please refer to https://cloud.digitalocean.com/settings/api/tokens"
+        print "And generate a new Access token (call it what ever you want)"
+        at = raw_input("--> New Access Token: ")
+        return at
 
     def __save_credentials(self, data):
         cwd = os.path.realpath(__file__)
@@ -30,4 +43,15 @@ class DropRoute():
             return access_token
         return data['access_token']
 
+    def __request_account_data(self):
+        return self.request('get', "/".join([self.__api_endpoint, "account"])).json()
 
+    def api(self, action, uri):
+        """
+        Handle api requests
+
+        :param uri: Desired endpoint URI (Volumes, Account)
+        :param action: GET / PUT / DELETE / etc
+        :return: json variable with respnse data
+        """
+        return self.request(action, "/".join([self.__api_endpoint, uri])).json()

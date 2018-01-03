@@ -25,7 +25,7 @@ class DigitalOcean(requests.Session):
         #TODO: if yer lazy - Direct user to token web page, else implement access grant flows
         #I know this is shitty
         print "Please refer to https://cloud.digitalocean.com/settings/api/tokens"
-        print "And generate a new Access token (call it what ever you want)"
+        print "And generate a new Access token (call it whatever you want)"
         at = raw_input("--> New Access Token: ")
         return at
 

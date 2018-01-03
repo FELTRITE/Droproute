@@ -12,8 +12,15 @@ class DigitalOcean(requests.Session):
                              'Authorization':'Bearer {}'.format(self.access_token)
                              })
         self.__api_endpoint = "https://api.digitalocean.com/v2"
-        self.account = self.api('GET', 'account')
+        self.account = self.__at_functionality_check()
 
+
+    def __reset_auth(self, errmsg):
+        print errmsg
+        access_token = self.__authenticate()
+        self.__save_credentials(access_token)
+        # Once New authentication is received, we reconstruct the class
+        return self.__init__()
 
 
     def __authenticate(self):
@@ -27,26 +34,27 @@ class DigitalOcean(requests.Session):
     def __save_credentials(self, data):
         cwd = os.path.realpath(__file__)
         fpath = os.path.join(os.path.split(cwd)[0], "Credentials.json")
+        jsondata = {"access_token": data}
         with open(fpath, 'wb') as f:
-            json.dump(data, f)
+            json.dump(jsondata, f)
 
     def __load_credential(self):
         cwd = os.path.realpath(__file__)
         fpath = os.path.join(os.path.split(cwd)[0], "Credentials.json")
-        with open(fpath, 'rb') as f:
-            data = json.load(f)
+        try:
+            with open(fpath, 'rb') as f:
+                data = json.load(f)
+        except ValueError:
+            return self.__reset_auth("The Available Credential file is corrupted.")
 
-        if not data.has_key("access_token"):
-            print "It seems You have yet to supply an Access token"
-            access_token = self.__authenticate()
-            self.__save_credentials(access_token)
-            return access_token
+        if not isinstance(data, dict):
+            return self.__reset_auth("The Available Credential file is deformated.")
 
-        elif len(data['access_token'] != 64):
-            print "It seems the Access Token available is defected or missing,"
-            access_token = self.__authenticate()
-            self.__save_credentials(access_token)
-            return access_token
+        elif not data.has_key("access_token"):
+            return self.__reset_auth("It seems You have yet to supply an Access token.")
+
+        elif len(data['access_token']) != 64:
+            return self.__reset_auth("It seems the Access Token available is defected or missing,")
 
         return data['access_token']
 
@@ -59,3 +67,13 @@ class DigitalOcean(requests.Session):
         :return: json variable with respnse data
         """
         return self.request(action, "/".join([self.__api_endpoint, uri])).json()
+
+    def __at_functionality_check(self):
+        response = self.api('GET', 'account')
+        if response.has_key("id"):
+            if response['id'] == "forbidden":
+                self.__reset_auth("Your Access token does not have proper Permissions.")
+            elif response['id'] == "unauthorized":
+                self.__reset_auth("Your Access token is no longer valid.")
+            return self.__at_functionality_check()
+        return response

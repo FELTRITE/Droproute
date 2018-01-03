@@ -1,6 +1,4 @@
-import requests
-import json
-import os
+import requests, json, os
 
 
 class DigitalOcean(requests.Session):

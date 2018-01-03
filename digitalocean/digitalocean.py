@@ -62,7 +62,7 @@ class DigitalOcean(requests.Session):
 
         :param uri: Desired endpoint URI (Volumes, Account)
         :param action: GET / PUT / DELETE / etc
-        :return: json variable with respnse data
+        :return: json variable with response data
         """
         return self.request(action, "/".join([self.__api_endpoint, uri])).json()
 

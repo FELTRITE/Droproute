@@ -47,7 +47,7 @@ class DigitalOcean(requests.Session):
             access_token = self.__authenticate()
             self.__save_credentials(access_token)
             return access_token
-        
+
         return data['access_token']
 
     def api(self, action, uri):

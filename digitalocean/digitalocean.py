@@ -60,7 +60,7 @@ class DigitalOcean(requests.Session):
         """
         Handle api requests
 
-        :param uri: Desired endpoint URI (Volumes, Account)
+        :param uri: Desired endpoint URI (volumes, account, droplets, etc)
         :param action: GET / PUT / DELETE / etc
         :return: json variable with response data
         """

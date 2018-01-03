@@ -14,14 +14,12 @@ class DigitalOcean(requests.Session):
         self.__api_endpoint = "https://api.digitalocean.com/v2"
         self.account = self.__at_functionality_check()
 
-
     def __reset_auth(self, errmsg):
         print errmsg
         access_token = self.__authenticate()
         self.__save_credentials(access_token)
         # Once New authentication is received, we reconstruct the class
         return self.__init__()
-
 
     def __authenticate(self):
         #TODO: if yer lazy - Direct user to token web page, else implement access grant flows

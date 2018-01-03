@@ -19,7 +19,6 @@ class DigitalOcean(requests.Session):
     def __authenticate(self):
         #TODO: if yer lazy - Direct user to token web page, else implement access grant flows
         #I know this is shitty
-        print "It seems You have yet to supply an Access token"
         print "Please refer to https://cloud.digitalocean.com/settings/api/tokens"
         print "And generate a new Access token (call it what ever you want)"
         at = raw_input("--> New Access Token: ")
@@ -38,9 +37,17 @@ class DigitalOcean(requests.Session):
             data = json.load(f)
 
         if not data.has_key("access_token"):
+            print "It seems You have yet to supply an Access token"
             access_token = self.__authenticate()
             self.__save_credentials(access_token)
             return access_token
+
+        elif len(data['access_token'] != 64):
+            print "It seems the Access Token available is defected or missing,"
+            access_token = self.__authenticate()
+            self.__save_credentials(access_token)
+            return access_token
+        
         return data['access_token']
 
     def api(self, action, uri):

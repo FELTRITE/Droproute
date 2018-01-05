@@ -37,8 +37,37 @@ class DropRoute(digitalocean.DigitalOcean):
 
         print(tabulate(tab_headers+colored_tab_data, showindex="always", headers="firstrow"))
 
-
-
+    ## -- Assest allocation
+    def deploy_droplet(self):
+        pass
+    def destroy_droplet(self):
+        pass
+    
+    def deploy_firewall(self):
+        # deploys a blocking firewall (except ssh)
+        pass
+    def destroy_firewall(self):
+        pass
+    
+    def deploy_route(self):
+        self.deploy_firewall():
+        self.deploy_droplet():
+         
+    def destroy_route(self):
+        self.destroy_droplet()
+        self.destroy_firewall()
+    
+    
+    ## -- Assests management
+    def update_firewall_rule(self, action, direction, proto, port):
+        pass
+     
+    def deploy_ovpn_server(self):
+        pass
+    def host_ovpn_client_configuration(self, port):
+        self.update_firewall_rule('PUT', 'IN', 'HTTPS', port)
+    
+    
 
 
 def main():

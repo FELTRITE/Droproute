@@ -1,20 +1,13 @@
 # -*- coding: utf-8 -*-
 from termcolor import colored
 from tabulate import tabulate
-import config
-import animation, uuid
+import animation
+import uuid
 import digitalocean
+import config
 
 
 __version__ = "0.1"
-__asciiart = """  ____                  ____             _
- |  _ \ _ __ ___  _ __ |  _ \ ___  _   _| |_ ___     ____
- | | | | '__/ _ \| '_ \| |_) / _ \| | | | __/ _ \   /$#</Digital
- | |_| | | | (_) | |_) |  _ < (_) | |_| | ||  __/  /##*/_Ocean
- |____/|_|  \___/| .__/|_| \_\___/ \__,_|\__\___| /___%#@/
-                 |_|                                 /#=/
-                                                    /_#/
- ver {}                                             /""".format(__version__)
 
 UUID = uuid.uuid4().hex
 
@@ -25,7 +18,7 @@ class DropRoute(digitalocean.DigitalOcean):
 
         super(DropRoute, self).__init__()
         self.tag = UUID
-        self.droplet_id = "77729714"
+        self.droplet_id = ""
         self.firewall_id = ""
         self.droplet_name = "-".join([self.tag, "droplet"])
         self.firewall_name = "-".join([self.tag, "firewall"])
@@ -58,12 +51,22 @@ class DropRoute(digitalocean.DigitalOcean):
 
 
     ## -- Assest allocation
+    def create_tag(self):
+        #todo writeup
+        pass
+
+    def destroy_tag(self):
+        #todo writeup
+        pass
+
     def deploy_droplet(self):
         #todo writeup, implement creation validation!
         pass
+
     def destroy_droplet(self):
         self.api("DELETE", "droplets/{uri}".format(uri=self.droplet_id))
         print "[+] Deleted: DROPLET {}".format(colored(self.droplet_name, "red"))
+        return
     
     def deploy_firewall(self):
         # deploys a blocking firewall (except ssh)
@@ -73,6 +76,7 @@ class DropRoute(digitalocean.DigitalOcean):
     def destroy_firewall(self):
         self.api("DELETE", "firewalls/{uri}".format(uri=self.firewall_id))
         print "[+] Deleted: FIREWALL {}".format(colored(self.firewall_name, "red"))
+        return
 
 
     def deploy_route(self, selected_datacenter):
@@ -87,7 +91,6 @@ class DropRoute(digitalocean.DigitalOcean):
 
         import time; time.sleep(10) #todo remove this
         print "[+] Done!"
-
         _loading.stop()
         return True
          
@@ -127,7 +130,7 @@ def prompt_select(display_message, option_list):
     return int(selection)
 
 def main():
-    print colored(__asciiart, 'yellow')
+    print colored(config.asciiart.format(ver=__version__), 'yellow')
     Digimon = DropRoute()
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)

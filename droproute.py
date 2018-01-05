@@ -17,7 +17,7 @@ class DropRoute(digitalocean.DigitalOcean):
         global UUID
 
         super(DropRoute, self).__init__()
-        self.tag = UUID
+        self.tag = "qwert123456"#UUID
         self.droplet_id = ""
         self.firewall_id = ""
         self.droplet_name = "-".join([self.tag, "droplet"])
@@ -55,9 +55,10 @@ class DropRoute(digitalocean.DigitalOcean):
         #todo writeup
         pass
 
-    def destroy_tag(self):
-        #todo writeup
-        pass
+    def delete_tag(self):
+        self.api("DELETE", "tags/{uri}".format(uri=self.tag))
+        print "[+] Deleted: TAG {}".format(colored(self.tag, "red"))
+        return
 
     def deploy_droplet(self):
         #todo writeup, implement creation validation!
@@ -84,6 +85,7 @@ class DropRoute(digitalocean.DigitalOcean):
         _loading.start()
         print "[+] Selected datacenter: {}".format(colored(selected_datacenter['slug'], "cyan"))
 
+        self.creat_tag()
         self.deploy_firewall() #First in
         self.deploy_droplet()
         self.update_firewall_rule()
@@ -98,6 +100,7 @@ class DropRoute(digitalocean.DigitalOcean):
         #todo writeup
         self.destroy_droplet()
         self.destroy_firewall() #Last out
+        self.delete_tag()
     
     
     ## -- Assest management
@@ -135,7 +138,7 @@ def main():
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)
 
-    Digimon.destroy_droplet()
+    Digimon.delete_tag()
     Digimon.deploy_route(datacenter_list[selected_region_index])
 
 

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 from termcolor import colored
 from tabulate import tabulate
-import animation
-import uuid
+import config
+import animation, uuid
 import digitalocean
+
 
 __version__ = "0.1"
 __asciiart = """  ____                  ____             _
@@ -60,35 +61,46 @@ class DropRoute(digitalocean.DigitalOcean):
 
     ## -- Assest allocation
     def deploy_droplet(self):
+        #todo writeup
         pass
     def destroy_droplet(self):
+        #todo writeup
         pass
     
     def deploy_firewall(self):
         # deploys a blocking firewall (except ssh)
+        #todo writeup
         pass
+
     def destroy_firewall(self):
+        #todo writeup
         pass
 
     def deploy_route(self, selected_datacenter):
-        _loading = animation.Wait(animation=PULSE_ANIMATION)
+        _loading = animation.Wait(text='', animation=config.ANIMATION)
         _loading.start()
         print "[+] Selected datacenter: {}".format(colored(selected_datacenter['slug'], "cyan"))
 
         self.deploy_firewall() #First in
         self.deploy_droplet()
+        self.update_firewall_rule()
+
+
         import time; time.sleep(10) #todo remove this
         print "[+] Done!"
+
         _loading.stop()
         return True
          
     def destroy_route(self):
+        #todo writeup
         self.destroy_droplet()
         self.destroy_firewall() #Last out
     
     
     ## -- Assest management
-    def update_firewall_rule(self, action, direction, proto, port):
+    def update_firewall_rule(self):
+        #todo writeup, params: action, direction, proto, port
         pass
      
     def deploy_ovpn_server(self):

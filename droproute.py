@@ -2,6 +2,7 @@
 from termcolor import colored
 from tabulate import tabulate
 import animation
+import prompter
 import uuid
 import digitalocean
 import config
@@ -17,7 +18,8 @@ class DropRoute(digitalocean.DigitalOcean):
         global UUID
 
         super(DropRoute, self).__init__()
-        self.tag = "qwert123456"#UUID
+        self.tag = UUID
+        self.online = False
         self.droplet_id = ""
         self.firewall_id = ""
         self.droplet_name = "-".join([self.tag, "droplet"])
@@ -84,11 +86,14 @@ class DropRoute(digitalocean.DigitalOcean):
         _loading = animation.Wait(text='', animation=config.ANIMATION)
         _loading.start()
         print "[+] Selected datacenter: {}".format(colored(selected_datacenter['slug'], "cyan"))
+        print "[+] Deploying Route {}".format(colored(self.tag, "green"))
 
-        self.creat_tag()
+
+        self.create_tag()
         self.deploy_firewall() #First in
         self.deploy_droplet()
         self.update_firewall_rule()
+        self.online = True
 
 
         import time; time.sleep(10) #todo remove this
@@ -98,11 +103,13 @@ class DropRoute(digitalocean.DigitalOcean):
          
     def destroy_route(self):
         #todo writeup
+        print "[+] Decommisioning Route {}".format(colored(self.tag, "red"))
         self.destroy_droplet()
         self.destroy_firewall() #Last out
         self.delete_tag()
-    
-    
+        self.online = False
+
+
     ## -- Assest management
     def update_firewall_rule(self):
         #todo writeup, params: action, direction, proto, port
@@ -123,14 +130,30 @@ def load_client_locally(client_config):
 
 def prompt_select(display_message, option_list):
     # list --> Chosen selection index
-    selection = raw_input(" ".join(["-->",
-                                    display_message,
-                                    "(1-{})".format(len(option_list)-1),
-                                    ":"]))
+    selection = prompter.prompt(" ".join(["-->",
+                                          display_message,
+                                          "(1-{})".format(len(option_list)-1),
+                                          ":"]))
     if not selection.isdigit() or not len(option_list)> int(selection) >= 0:
         print "#ERR: Supplied an invalid option!"
         return prompt_select(display_message, option_list)
     return int(selection)
+
+
+def __prompt_route_decommissioning():
+    if prompter.yesno("--> Destroy route?", default='no'):
+        # chose to keep
+        print "[+] ok."
+        return True
+
+    else:
+        # chose to destroy
+        if not prompter.yesno("--> Are you sure?", default='no'):
+            # chose to destroy, kill
+            return False
+        print "[+] ok. keeping route up"
+        return True
+
 
 def main():
     print colored(config.asciiart.format(ver=__version__), 'yellow')
@@ -138,8 +161,17 @@ def main():
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)
 
-    Digimon.delete_tag()
     Digimon.deploy_route(datacenter_list[selected_region_index])
+
+    #todo start heartbeat monitor threading!
+    while Digimon.online:
+        if not __prompt_route_decommissioning():
+            # Proceed only when Decommissioning the route
+            break
+
+    Digimon.destroy_route()
+
+
 
 
 if __name__ == '__main__':

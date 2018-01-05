@@ -14,4 +14,5 @@ PULSE_ANIMATION = (
     '[---⌄^--]', '[----⌄^-]', '[-----⌄^]', '[------⌄]', '[-------]'
 )
 
+HEARTBEAT_INTERVAL = 60
 ANIMATION = PULSE_ANIMATION

@@ -1,4 +1,5 @@
 animation
+prompter
 termcolor
 requests
 tabulate

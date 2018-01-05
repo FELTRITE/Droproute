@@ -62,7 +62,24 @@ class DigitalOcean(requests.Session):
         :param action: GET / PUT / DELETE / etc
         :return: json variable with response data
         """
-        return self.request(action, "/".join([self.__api_endpoint, uri])).json()
+        # DELETE requires separate response handling (due to API architecture)
+        if action.upper() == "DELETE":
+            api_response = self.request("DELETE", "/".join([self.__api_endpoint, uri]))
+            if api_response.status_code != 204:
+
+                # weird, maybe its already deleted? trying to list it
+                check_response = self.api("GET", uri)
+                if check_response.status_code == 404:
+
+                    # ok, all good!
+                    return {}
+                print "#ERR: Deletion request failed. retrying"
+                return self.api("DELETE", uri)
+
+            return {}
+
+        api_response = self.request(action, "/".join([self.__api_endpoint, uri]))
+        return api_response.json()
 
     def __at_functionality_check(self):
         response = self.api('GET', 'account')

@@ -16,11 +16,6 @@ __asciiart = """  ____                  ____             _
                                                     /_#/
  ver {}                                             /""".format(__version__)
 
-PULSE_ANIMATION = (
-    '[-------]', '[⌃------]', '[⌄^-----]', '[-⌄^----]', '[--⌄^---]',
-    '[---⌄^--]', '[----⌄^-]', '[-----⌄^]', '[------⌄]', '[-------]'
-)
-
 UUID = uuid.uuid4().hex
 
 class DropRoute(digitalocean.DigitalOcean):
@@ -30,8 +25,11 @@ class DropRoute(digitalocean.DigitalOcean):
 
         super(DropRoute, self).__init__()
         self.tag = UUID
-        self.droplet_id = "-".join([self.tag, "droplet"])
-        self.firewall_id = "-".join([self.tag, "firewall"])
+        self.droplet_id = "77729714"
+        self.firewall_id = ""
+        self.droplet_name = "-".join([self.tag, "droplet"])
+        self.firewall_name = "-".join([self.tag, "firewall"])
+
 
 
     def __availability_color_mapping(self, row):
@@ -40,7 +38,7 @@ class DropRoute(digitalocean.DigitalOcean):
         return [colored(row[1], 'red'), colored(row[2], 'red')]
 
     def display_available_regions(self):
-        _loading = animation.Wait(text="Pending API Query", animation="bar")
+        _loading = animation.Wait(text="[+] Pending API Query", animation="bar")
         _loading.start()
         regions_json = self.api('get', 'regions')
         regions_list = regions_json['regions']
@@ -61,20 +59,21 @@ class DropRoute(digitalocean.DigitalOcean):
 
     ## -- Assest allocation
     def deploy_droplet(self):
-        #todo writeup
+        #todo writeup, implement creation validation!
         pass
     def destroy_droplet(self):
-        #todo writeup
-        pass
+        self.api("DELETE", "droplets/{uri}".format(uri=self.droplet_id))
+        print "[+] Deleted: DROPLET {}".format(colored(self.droplet_name, "red"))
     
     def deploy_firewall(self):
         # deploys a blocking firewall (except ssh)
-        #todo writeup
+        #todo writeup, implement creation validation!
         pass
 
     def destroy_firewall(self):
-        #todo writeup
-        pass
+        self.api("DELETE", "firewalls/{uri}".format(uri=self.firewall_id))
+        print "[+] Deleted: FIREWALL {}".format(colored(self.firewall_name, "red"))
+
 
     def deploy_route(self, selected_datacenter):
         _loading = animation.Wait(text='', animation=config.ANIMATION)
@@ -133,6 +132,7 @@ def main():
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)
 
+    Digimon.destroy_droplet()
     Digimon.deploy_route(datacenter_list[selected_region_index])
 
 

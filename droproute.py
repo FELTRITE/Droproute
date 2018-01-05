@@ -2,6 +2,7 @@ from termcolor import colored
 from tabulate import tabulate
 import digitalocean
 
+__version__ = "0.1"
 
 __asciiart = """  ____                  ____             _
  |  _ \ _ __ ___  _ __ |  _ \ ___  _   _| |_ ___     ____
@@ -10,7 +11,7 @@ __asciiart = """  ____                  ____             _
  |____/|_|  \___/| .__/|_| \_\___/ \__,_|\__\___| /___%#@/
                  |_|                                 /#=/
                                                     /_#/
- ver {}                                             /""".format("0.1")
+ ver {}                                             /""".format(__version__)
 
 
 class DropRoute(digitalocean.DigitalOcean):

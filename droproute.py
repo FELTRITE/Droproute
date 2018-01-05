@@ -22,7 +22,7 @@ class DropRoute(digitalocean.DigitalOcean):
         self.tag = self.uuid
         self.droplet_id = self.uuid.join(["-", "droplet"])
         self.firewall_id = self.uuid.join(["-", "firewall"])
-        
+
 
     def __availability_color_mapping(self, row):
         if row[0]:
@@ -42,6 +42,7 @@ class DropRoute(digitalocean.DigitalOcean):
         colored_tab_data = map(self.__availability_color_mapping, tab_data)
 
         print(tabulate(tab_headers+colored_tab_data, showindex="always", headers="firstrow"))
+
 
     ## -- Assest allocation
     def deploy_droplet(self):
@@ -64,7 +65,7 @@ class DropRoute(digitalocean.DigitalOcean):
         self.destroy_firewall() #Last out
     
     
-    ## -- Assests management
+    ## -- Assest management
     def update_firewall_rule(self, action, direction, proto, port):
         pass
      
@@ -72,9 +73,14 @@ class DropRoute(digitalocean.DigitalOcean):
         pass
     def host_ovpn_client_configuration(self, port):
         self.update_firewall_rule('PUT', 'IN', 'HTTPS', port)
-    
-    
 
+
+
+
+    
+def load_client_locally(client_config):
+    #Todo: load client config to local ovpn bin
+    pass
 
 def main():
     print colored(__asciiart, 'yellow')

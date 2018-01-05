@@ -1,9 +1,9 @@
 from termcolor import colored
 from tabulate import tabulate
+import uuid
 import digitalocean
 
 __version__ = "0.1"
-
 __asciiart = """  ____                  ____             _
  |  _ \ _ __ ___  _ __ |  _ \ ___  _   _| |_ ___     ____
  | | | | '__/ _ \| '_ \| |_) / _ \| | | | __/ _ \   /$#</Digital
@@ -18,6 +18,11 @@ class DropRoute(digitalocean.DigitalOcean):
 
     def __init__(self):
         super(DropRoute, self).__init__()
+        self.uuid = uuid.uuid4().hex
+        self.tag = self.uuid
+        self.droplet_id = self.uuid.join(["-", "droplet"])
+        self.firewall_id = self.uuid.join(["-", "firewall"])
+        
 
     def __availability_color_mapping(self, row):
         if row[0]:
@@ -26,12 +31,12 @@ class DropRoute(digitalocean.DigitalOcean):
 
     def display_available_regions(self):
         response = self.api('get', 'regions')
-        regions = response['regions']
+        regions_json = response['regions']
         # Table headers (4 column list)
         tab_headers = [['','Location', 'Datacenter']]
 
         # convert from Json to a List (column) of list (row)
-        tab_data = [[iter['available'], iter['name'], iter['slug']] for iter in regions]
+        tab_data = [[iter['available'], iter['name'], iter['slug']] for iter in regions_json]
 
         # termcoloring, converting True/False to Blue/Red colored rows
         colored_tab_data = map(self.__availability_color_mapping, tab_data)
@@ -51,12 +56,12 @@ class DropRoute(digitalocean.DigitalOcean):
         pass
     
     def deploy_route(self):
-        self.deploy_firewall():
-        self.deploy_droplet():
+        self.deploy_firewall() #First in
+        self.deploy_droplet()
          
     def destroy_route(self):
         self.destroy_droplet()
-        self.destroy_firewall()
+        self.destroy_firewall() #Last out
     
     
     ## -- Assests management

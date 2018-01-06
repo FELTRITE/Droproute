@@ -141,29 +141,34 @@ def prompt_select(display_message, option_list):
 
 
 def __prompt_route_decommissioning():
-    if prompter.yesno("--> Destroy route?", default='no'):
+    _loading = animation.Wait(text='', animation=config.ANIMATION)
+    _loading.start()
+    if prompter.yesno("--> Destroy route?", default='no', suffix="\n"):
         # chose to keep
         print "[+] ok."
+        _loading.stop()
         return True
 
     else:
         # chose to destroy
-        if not prompter.yesno("--> Are you sure?", default='no'):
+        if not prompter.yesno("--> Are you sure?", default='no', suffix="\n"):
             # chose to destroy, kill
+            _loading.stop()
             return False
+
         print "[+] ok. keeping route up"
+        _loading.stop()
         return True
 
 
-def main():
-    print colored(config.asciiart.format(ver=__version__), 'yellow')
-    Digimon = DropRoute()
+def interactive_mode(Digimon):
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)
 
     Digimon.deploy_route(datacenter_list[selected_region_index])
 
     #todo start heartbeat monitor threading!
+    print "[+] Route {tag} {stat}".format(tag=Digimon.tag, stat=colored("ONLINE", "green"))
     while Digimon.online:
         if not __prompt_route_decommissioning():
             # Proceed only when Decommissioning the route
@@ -171,7 +176,10 @@ def main():
 
     Digimon.destroy_route()
 
-
+def main():
+    print colored(config.asciiart.format(ver=__version__), 'yellow')
+    Digimon = DropRoute()
+    interactive_mode(Digimon)
 
 
 if __name__ == '__main__':

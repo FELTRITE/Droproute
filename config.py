@@ -9,10 +9,10 @@ asciiart = """  ____                  ____             _
                                                     /_#/
  ver {ver}                                             /"""
 
-PULSE_ANIMATION = (
+__PULSE_ANIMATION = (
     '[-------]', '[⌃------]', '[⌄^-----]', '[-⌄^----]', '[--⌄^---]',
     '[---⌄^--]', '[----⌄^-]', '[-----⌄^]', '[------⌄]', '[-------]'
 )
 
 HEARTBEAT_INTERVAL = 60
-ANIMATION = PULSE_ANIMATION
+ANIMATION = __PULSE_ANIMATION

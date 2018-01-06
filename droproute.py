@@ -4,6 +4,7 @@ from tabulate import tabulate
 import animation
 import prompter
 import uuid
+import json
 import digitalocean
 from config import config
 
@@ -88,13 +89,11 @@ class DropRoute(digitalocean.DigitalOcean):
         return
     
     def deploy_firewall(self):
-        # deploys a blockingfirewall (except ssh)
-        print "[+] Deploying Firewall {name} {id}".format(name=colored(self.firewall_name, "green"),
-                                                          id=colored(self.firewall_id, "green"))
-
-        jj = self.asset_configuration['FIREWALL_BLOCKING']
-        print jj
-        self.api("POST", "firewalls", body=jj)
+        # deploys a blocking firewall (except ssh)
+        print "[+] Deploying Firewall {name}".format(name=colored(self.firewall_name, "blue"))
+        response = self.api("POST", "firewalls", body=json.dumps(self.asset_configuration['FIREWALL_BLOCKING']))
+        self.firewall_id = response['firewall']['id']
+        print "[+] Created Firewall {id}".format(id=colored(self.firewall_id, "green"))
 
     def destroy_firewall(self):
         self.api("DELETE", "firewalls/{uri}".format(uri=self.firewall_id))
@@ -103,8 +102,6 @@ class DropRoute(digitalocean.DigitalOcean):
 
 
     def deploy_route(self, selected_datacenter):
-        _loading = animation.Wait(text='', animation=config.ANIMATION)
-        _loading.start()
         print "[+] Selected datacenter: {}".format(colored(selected_datacenter['slug'], "cyan"))
         print "[+] Deploying Route {}".format(colored(self.tag, "green"))
         self.create_tag()
@@ -113,7 +110,6 @@ class DropRoute(digitalocean.DigitalOcean):
         self.update_firewall_rule()
         self.online = True
         print "[+] Done!"
-        _loading.stop()
         return True
          
     def destroy_route(self):
@@ -132,16 +128,15 @@ class DropRoute(digitalocean.DigitalOcean):
      
     def deploy_ovpn_server(self):
         pass
+
     def host_ovpn_client_configuration(self, port):
-        self.update_firewall_rule('PUT', 'IN', 'HTTPS', port)
+        self.update_firewall_rule(port)
 
 
-
-
-    
 def load_client_locally(client_config):
     #Todo: load client config to local ovpn bin
     pass
+
 
 def prompt_select(display_message, option_list):
     # list --> Chosen selection index
@@ -156,23 +151,18 @@ def prompt_select(display_message, option_list):
 
 
 def __prompt_route_decommissioning():
-    _loading = animation.Wait(text='', animation=config.ANIMATION)
-    _loading.start()
     if prompter.yesno("--> Destroy route?", default='no', suffix="\n"):
         # chose to keep
         print "[+] ok."
-        _loading.stop()
         return True
 
     else:
         # chose to destroy
         if not prompter.yesno("--> Are you sure?", default='no', suffix="\n"):
             # chose to destroy, kill
-            _loading.stop()
             return False
 
         print "[+] ok. keeping route up"
-        _loading.stop()
         return True
 
 
@@ -183,12 +173,14 @@ def interactive_mode(Digimon):
     Digimon.deploy_route(datacenter_list[selected_region_index])
 
     #todo start heartbeat monitor threading!
-    print "[+] Route {tag} {stat}".format(tag=Digimon.tag, stat=colored("ONLINE", "green"))
+    print "[+] Route {tag} {stat}".format(tag=Digimon.tag, stat=colored("online", "green"))
+    _loading = animation.Wait(text='', animation=config.ANIMATION)
+    _loading.start()
     while Digimon.online:
         if not __prompt_route_decommissioning():
             # Proceed only when Decommissioning the route
             break
-
+    _loading.stop()
     Digimon.destroy_route()
 
 def main():

@@ -1,11 +1,11 @@
 {
   "name": null,
+  "tags": null,
   "inbound_rules": [
     {
       "protocol": "icmp",
-      "ports": 0,
+      "ports": null,
       "sources": {
-        "tags": [],
         "addresses": [
           "0.0.0.0/0",
           "::/0"
@@ -13,7 +13,6 @@
       }
     }
   ],
-  "outbound_rules": [],
-  "droplet_ids": [],
-  "tags": null
+  "outbound_rules": null
 }
+

@@ -6,9 +6,17 @@ class DigitalOcean(requests.Session):
     def __init__(self):
         super(DigitalOcean, self).__init__()
         self.access_token = self.__load_credential()
-        self.headers.update({'Content-Type': 'application/json',
-                             'Authorization':'Bearer {}'.format(self.access_token)
-                             })
+        # todo remove these proxies!
+        self.verify = False
+        self.proxies.update({
+            "http":"http://127.0.0.1:8080",
+            "https":"http://127.0.0.1:8080"
+        })
+        # todo ^^^ remove these proxies ^^^
+        self.headers.update({
+            'Content-Type': 'application/json',
+            'Authorization':'Bearer {}'.format(self.access_token)
+        })
         self.__api_endpoint = "https://api.digitalocean.com/v2"
         self.account = self.__at_functionality_check()
 
@@ -54,7 +62,7 @@ class DigitalOcean(requests.Session):
 
         return data['access_token']
 
-    def api(self, action, uri, body=''):
+    def api(self, action, uri, body='', component="API"):
         """
         Handle api requests
 
@@ -79,8 +87,13 @@ class DigitalOcean(requests.Session):
 
             return {}
 
-        api_response = self.request(action, "/".join([self.__api_endpoint, uri]), data=body)
-        return api_response.json()
+        api_response = json.loads(self.request(action, "/".join([self.__api_endpoint, uri]), data=body).content)
+        if api_response.has_key('message'):
+            raise ValueError("{phase}: {msg}".format(
+                phase="-".join(['#ERR', component, uri.upper()]),
+                msg=api_response['message'])
+            )
+        return api_response
 
     def __at_functionality_check(self):
         response = self.api('GET', 'account')

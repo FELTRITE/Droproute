@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import json
 
 asciiart = """  ____                  ____             _
  |  _ \ _ __ ___  _ __ |  _ \ ___  _   _| |_ ___     ____
@@ -17,5 +18,6 @@ __PULSE_ANIMATION = (
 HEARTBEAT_INTERVAL = 60
 ANIMATION = __PULSE_ANIMATION
 
-# todo loading firewall configurations
-# todo loading droplet configurations
+FIREWALL_BLOCKING = json.load(open("config/FIREWALL_BLOCKING.json"))
+FIREWALL_OVPN = json.load(open("config/FIREWALL_OVPN.json"))
+DROPLET_OVPN = json.load(open("config/DROPLET_OVPN.json"))

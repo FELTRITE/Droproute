@@ -23,7 +23,24 @@ class DropRoute(digitalocean.DigitalOcean):
         self.firewall_id = ""
         self.droplet_name = "-".join([self.tag, "droplet"])
         self.firewall_name = "-".join([self.tag, "firewall"])
+        self.asset_configuration = {
+                        "FIREWALL_BLOCKING": config.FIREWALL_BLOCKING,
+                        "FIREWALL_OVPN": config.FIREWALL_OVPN,
+                        "DROPLET_OVPN": config.DROPLET_OVPN
+        }
 
+        self.asset_configuration['FIREWALL_BLOCKING'].update({
+            "name": self.firewall_name,
+            "tags": self.tag
+        })
+        self.asset_configuration['FIREWALL_OVPN'].update({
+            "name": self.firewall_name,
+            "tags": self.tag
+        })
+        self.asset_configuration['DROPLET_OVPN'].update({
+            "name": self.droplet_name,
+            "tags": self.tag
+        })
 
 
     def __availability_color_mapping(self, row):
@@ -71,10 +88,13 @@ class DropRoute(digitalocean.DigitalOcean):
         return
     
     def deploy_firewall(self):
-        # deploys a blocking firewall (except ssh)
+        # deploys a blockingfirewall (except ssh)
         print "[+] Deploying Firewall {name} {id}".format(name=colored(self.firewall_name, "green"),
                                                           id=colored(self.firewall_id, "green"))
-        self.api("POST", "firewalls")
+
+        jj = self.asset_configuration['FIREWALL_BLOCKING']
+        print jj
+        self.api("POST", "firewalls", body=jj)
 
     def destroy_firewall(self):
         self.api("DELETE", "firewalls/{uri}".format(uri=self.firewall_id))

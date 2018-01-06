@@ -54,13 +54,13 @@ class DigitalOcean(requests.Session):
 
         return data['access_token']
 
-    def api(self, action, uri, data=''):
+    def api(self, action, uri, body=''):
         """
         Handle api requests
 
         :param uri: Desired endpoint URI (volumes, account, droplets, etc)
         :param action: GET / PUT / DELETE / etc
-        :param data: optional request body
+        :param body: optional request body
         :return: json variable with response data
         """
         # DELETE requires separate response handling (due to API architecture)

@@ -5,8 +5,7 @@ import animation
 import prompter
 import uuid
 import digitalocean
-import config
-
+from config import config
 
 __version__ = "0.1"
 
@@ -73,8 +72,9 @@ class DropRoute(digitalocean.DigitalOcean):
     
     def deploy_firewall(self):
         # deploys a blocking firewall (except ssh)
-        #todo writeup, implement creation validation!
-        pass
+        print "[+] Deploying Firewall {name} {id}".format(name=colored(self.firewall_name, "green"),
+                                                          id=colored(self.firewall_id, "green"))
+        self.api("POST", "firewalls")
 
     def destroy_firewall(self):
         self.api("DELETE", "firewalls/{uri}".format(uri=self.firewall_id))
@@ -87,16 +87,11 @@ class DropRoute(digitalocean.DigitalOcean):
         _loading.start()
         print "[+] Selected datacenter: {}".format(colored(selected_datacenter['slug'], "cyan"))
         print "[+] Deploying Route {}".format(colored(self.tag, "green"))
-
-
         self.create_tag()
         self.deploy_firewall() #First in
         self.deploy_droplet()
         self.update_firewall_rule()
         self.online = True
-
-
-        import time; time.sleep(10) #todo remove this
         print "[+] Done!"
         _loading.stop()
         return True

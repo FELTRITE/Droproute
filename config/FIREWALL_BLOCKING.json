@@ -1,11 +1,11 @@
 {
   "name": null,
   "tags": null,
-  "inbound_rules": [
+  "outbound_rules": [
     {
       "protocol": "icmp",
       "ports": null,
-      "sources": {
+      "destinations": {
         "addresses": [
           "0.0.0.0/0",
           "::/0"
@@ -13,6 +13,6 @@
       }
     }
   ],
-  "outbound_rules": null
+  "inbound_rules": null
 }
 

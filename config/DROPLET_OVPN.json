@@ -1,1 +1,13 @@
-{}
+{
+  "name": null,
+  "region": null,
+  "size": "512mb",
+  "image": "ubuntu-14-04-x64",
+  "ssh_keys": null,
+  "backups": false,
+  "ipv6": false,
+  "user_data": null,
+  "private_networking": null,
+  "volumes": null,
+  "tags": null
+}

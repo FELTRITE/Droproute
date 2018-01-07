@@ -4,13 +4,12 @@ from tabulate import tabulate
 import animation
 import prompter
 import uuid
-import json
 import digitalocean
 from config import config
 
 __version__ = "0.1"
-
 UUID = uuid.uuid4().hex
+
 
 class DropRoute(digitalocean.DigitalOcean):
 
@@ -20,8 +19,9 @@ class DropRoute(digitalocean.DigitalOcean):
         super(DropRoute, self).__init__()
         self.tag = UUID
         self.online = False
-        self.droplet_id = ""
-        self.firewall_id = ""
+        self.droplet_id = None
+        self.firewall_id = None
+        self.datacenter = None
         self.droplet_name = "-".join([self.tag, "droplet"])
         self.firewall_name = "-".join([self.tag, "firewall"])
         self.asset_configuration = {
@@ -32,15 +32,15 @@ class DropRoute(digitalocean.DigitalOcean):
 
         self.asset_configuration['FIREWALL_BLOCKING'].update({
             "name": self.firewall_name,
-            "tags": self.tag
+            "tags": [self.tag]
         })
         self.asset_configuration['FIREWALL_OVPN'].update({
             "name": self.firewall_name,
-            "tags": self.tag
+            "tags": [self.tag]
         })
         self.asset_configuration['DROPLET_OVPN'].update({
             "name": self.droplet_name,
-            "tags": self.tag
+            "tags": [self.tag]
         })
 
     def __availability_color_mapping(self, row):
@@ -77,8 +77,13 @@ class DropRoute(digitalocean.DigitalOcean):
         print "[+] Deleted: TAG {}".format(colored(self.tag, "red"))
 
     def deploy_droplet(self):
-        # todo writeup
-        pass
+        print "[+] Deploying Droplet {name}".format(name=colored(self.firewall_name, "green"))
+        self.asset_configuration['DROPLET_OVPN'].update({
+            "region": self.datacenter['slug']
+        })
+        response = self.api("POST", "droplets", body=self.asset_configuration['DROPLET_OVPN'])
+        self.droplet_id = response['droplet']['id']
+        print "[+] Created Droplet {id}".format(id=colored(self.firewall_id, "green"))
 
     def destroy_droplet(self):
         self.api("DELETE", "droplets/{uri}".format(uri=self.droplet_id))
@@ -99,8 +104,8 @@ class DropRoute(digitalocean.DigitalOcean):
         # todo writeup, params: action, direction, proto, port
         pass
 
-    def deploy_Infrastructure(self, selected_datacenter):
-        print "[+] Selected datacenter: {}".format(colored(selected_datacenter['slug'], "cyan"))
+    def deploy_Infrastructure(self):
+        print "[+] Selected datacenter: {}".format(colored(self.datacenter['slug'], "cyan"))
         print "[+] Deploying Route Infrastructure {}".format(colored(self.tag, "green"))
         self.create_tag()
         self.deploy_firewall()  # First in
@@ -162,9 +167,11 @@ def interactive_mode(Digimon):
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)
 
-    Digimon.deploy_Infrastructure(datacenter_list[selected_region_index])
+    Digimon.datacenter = datacenter_list[selected_region_index]
+    Digimon.deploy_Infrastructure()
 
     # todo start heartbeat monitor threading!
+    # todo pulse and check droplet to see whether its setup is completed
     _loading = animation.Wait(text='', animation=config.ANIMATION)
     _loading.start()
     while Digimon.online:

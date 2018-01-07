@@ -62,7 +62,7 @@ class DigitalOcean(requests.Session):
 
         return data['access_token']
 
-    def api(self, action, uri, body='', component="API"):
+    def api(self, action, uri, body='{}'):
         """
         Handle api requests
 
@@ -71,6 +71,7 @@ class DigitalOcean(requests.Session):
         :param body: optional request body
         :return: json variable with response data
         """
+        body = json.dumps(body)
         # DELETE requires separate response handling (due to API architecture)
         if action.upper() == "DELETE":
             api_response = self.request("DELETE", "/".join([self.__api_endpoint, uri]))
@@ -86,11 +87,10 @@ class DigitalOcean(requests.Session):
                 return self.api("DELETE", uri)
 
             return {}
-
         api_response = json.loads(self.request(action, "/".join([self.__api_endpoint, uri]), data=body).content)
         if api_response.has_key('message'):
-            raise ValueError("{phase}: {msg}".format(
-                phase="-".join(['#ERR', component, uri.upper()]),
+            raise ValueError("{module}: {msg}".format(
+                module="-".join(['#ERR', 'API', uri.upper()]),
                 msg=api_response['message'])
             )
         return api_response

@@ -170,6 +170,7 @@ def interactive_mode(Digimon):
     Digimon.datacenter = datacenter_list[selected_region_index]
     Digimon.deploy_Infrastructure()
 
+
     # todo start heartbeat monitor threading!
     # todo pulse and check droplet to see whether its setup is completed
     _loading = animation.Wait(text='', animation=config.ANIMATION)

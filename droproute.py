@@ -43,14 +43,13 @@ class DropRoute(digitalocean.DigitalOcean):
             "tags": self.tag
         })
 
-
     def __availability_color_mapping(self, row):
         if row[0]:
             return [colored(row[1], 'blue'), colored(row[2], 'cyan')]
         return [colored(row[1], 'red'), colored(row[2], 'red')]
 
     def display_available_regions(self):
-        _loading = animation.Wait(text="[+] Pending API Query", animation="bar")
+        _loading = animation.Wait(text="[+] Pending API Query", animation=config.ANIMATION)
         _loading.start()
         regions_json = self.api('get', 'regions')
         regions_list = regions_json['regions']
@@ -68,73 +67,66 @@ class DropRoute(digitalocean.DigitalOcean):
         print(tabulate(tab_headers+colored_tab_data, showindex="always", headers="firstrow"))
         return regions_list
 
-
-    ## -- Assest allocation
+    # -- Asset allocation
     def create_tag(self):
-        #todo writeup
-        pass
+        self.api("POST", "tags", body={"name": str(self.tag)})
+        print "[+] Created: TAG {}".format(self.tag)
 
     def delete_tag(self):
         self.api("DELETE", "tags/{uri}".format(uri=self.tag))
         print "[+] Deleted: TAG {}".format(colored(self.tag, "red"))
-        return
 
     def deploy_droplet(self):
-        #todo writeup, implement creation validation!
+        # todo writeup
         pass
 
     def destroy_droplet(self):
         self.api("DELETE", "droplets/{uri}".format(uri=self.droplet_id))
         print "[+] Deleted: DROPLET {}".format(colored(self.droplet_name, "red"))
-        return
     
     def deploy_firewall(self):
         # deploys a blocking firewall (except ssh)
-        print "[+] Deploying Firewall {name}".format(name=colored(self.firewall_name, "blue"))
-        response = self.api("POST", "firewalls", body=json.dumps(self.asset_configuration['FIREWALL_BLOCKING']))
+        print "[+] Deploying Firewall {name}".format(name=colored(self.firewall_name, "green"))
+        response = self.api("POST", "firewalls", body=self.asset_configuration['FIREWALL_BLOCKING'])
         self.firewall_id = response['firewall']['id']
         print "[+] Created Firewall {id}".format(id=colored(self.firewall_id, "green"))
 
     def destroy_firewall(self):
         self.api("DELETE", "firewalls/{uri}".format(uri=self.firewall_id))
         print "[+] Deleted: FIREWALL {}".format(colored(self.firewall_name, "red"))
-        return
 
+    def update_firewall_rule(self, new_rule):
+        # todo writeup, params: action, direction, proto, port
+        pass
 
-    def deploy_route(self, selected_datacenter):
+    def deploy_Infrastructure(self, selected_datacenter):
         print "[+] Selected datacenter: {}".format(colored(selected_datacenter['slug'], "cyan"))
-        print "[+] Deploying Route {}".format(colored(self.tag, "green"))
+        print "[+] Deploying Route Infrastructure {}".format(colored(self.tag, "green"))
         self.create_tag()
-        self.deploy_firewall() #First in
+        self.deploy_firewall()  # First in
         self.deploy_droplet()
-        self.update_firewall_rule()
+        self.update_firewall_rule(config.FIREWALL_OVPN)
         self.online = True
-        print "[+] Done!"
         return True
          
-    def destroy_route(self):
-        #todo writeup
-        print "[+] Decommisioning Route {}".format(colored(self.tag, "red"))
+    def destroy_Infrastructure(self):
+        print "[+] Decommisioning Route Infrastructure {}".format(colored(self.tag, "red"))
         self.destroy_droplet()
-        self.destroy_firewall() #Last out
+        self.destroy_firewall()  # Last out
         self.delete_tag()
         self.online = False
 
 
-    ## -- Assest management
-    def update_firewall_rule(self):
-        #todo writeup, params: action, direction, proto, port
-        pass
-     
+    # -- Asset management
     def deploy_ovpn_server(self):
         pass
 
-    def host_ovpn_client_configuration(self, port):
-        self.update_firewall_rule(port)
+    def host_ovpn_client_configuration(self, ):
+        self.update_firewall_rule()
 
 
 def load_client_locally(client_config):
-    #Todo: load client config to local ovpn bin
+    # Todo: load client config to local ovpn bin
     pass
 
 
@@ -170,10 +162,9 @@ def interactive_mode(Digimon):
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)
 
-    Digimon.deploy_route(datacenter_list[selected_region_index])
+    Digimon.deploy_Infrastructure(datacenter_list[selected_region_index])
 
-    #todo start heartbeat monitor threading!
-    print "[+] Route {tag} {stat}".format(tag=Digimon.tag, stat=colored("online", "green"))
+    # todo start heartbeat monitor threading!
     _loading = animation.Wait(text='', animation=config.ANIMATION)
     _loading.start()
     while Digimon.online:
@@ -181,7 +172,8 @@ def interactive_mode(Digimon):
             # Proceed only when Decommissioning the route
             break
     _loading.stop()
-    Digimon.destroy_route()
+    Digimon.destroy_Infrastructure()
+
 
 def main():
     print colored(config.asciiart.format(ver=__version__), 'yellow')

@@ -83,7 +83,7 @@ class DropRoute(digitalocean.DigitalOcean):
         })
         response = self.api("POST", "droplets", body=self.asset_configuration['DROPLET_OVPN'])
         self.droplet_id = response['droplet']['id']
-        print "[+] Created Droplet {id}".format(id=colored(self.firewall_id, "green"))
+        print "[+] Created Droplet {id}".format(id=colored(self.droplet_id, "green"))
 
     def destroy_droplet(self):
         self.api("DELETE", "droplets/{uri}".format(uri=self.droplet_id))

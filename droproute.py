@@ -4,6 +4,7 @@ from tabulate import tabulate
 import animation
 import prompter
 import uuid
+import os
 import digitalocean
 from config import config
 
@@ -49,7 +50,7 @@ class DropRoute(digitalocean.DigitalOcean):
         return [colored(row[1], 'red'), colored(row[2], 'red')]
 
     def display_available_regions(self):
-        _loading = animation.Wait(text="[+] Pending API Query", animation=config.ANIMATION)
+        _loading = animation.Wait(text="[+] Pending API Query ", animation=config.ANIMATION)
         _loading.start()
         regions_json = self.api('get', 'regions')
         regions_list = regions_json['regions']
@@ -77,7 +78,7 @@ class DropRoute(digitalocean.DigitalOcean):
         print "[+] Deleted: TAG {}".format(colored(self.tag, "red"))
 
     def deploy_droplet(self):
-        print "[+] Deploying Droplet {name}".format(name=colored(self.firewall_name, "green"))
+        print "[+] Deploying Droplet {name}".format(name=colored(self.droplet_name, "green"))
         self.asset_configuration['DROPLET_OVPN'].update({
             "region": self.datacenter['slug']
         })
@@ -130,8 +131,9 @@ class DropRoute(digitalocean.DigitalOcean):
         self.update_firewall_rule()
 
 
-def load_client_locally(client_config):
+def load_client_locally(client_config="/home/derman/client.ovpn"):
     # Todo: load client config to local ovpn bin
+    os.system("openvpn --config {clientconfigpath} --ipchange echo yess ".format(clientconfigpath=client_config))
     pass
 
 
@@ -175,6 +177,7 @@ def interactive_mode(Digimon):
     # todo pulse and check droplet to see whether its setup is completed
     _loading = animation.Wait(text='', animation=config.ANIMATION)
     _loading.start()
+    load_client_locally()
     while Digimon.online:
         if not __prompt_route_decommissioning():
             # Proceed only when Decommissioning the route

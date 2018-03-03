@@ -111,6 +111,7 @@ class DropRoute(digitalocean.DigitalOcean):
         self.create_tag()
         self.deploy_firewall()  # First in
         self.deploy_droplet()
+        #TODO: Deploy OVPN server with ovpn-deployer
         self.update_firewall_rule(config.FIREWALL_OVPN)
         self.online = True
         return True
@@ -122,13 +123,6 @@ class DropRoute(digitalocean.DigitalOcean):
         self.delete_tag()
         self.online = False
 
-
-    # -- Asset management
-    def deploy_ovpn_server(self):
-        pass
-
-    def host_ovpn_client_configuration(self, ):
-        self.update_firewall_rule()
 
 
 def load_client_locally(client_config="/home/derman/client.ovpn"):

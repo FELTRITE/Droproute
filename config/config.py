@@ -19,5 +19,5 @@ HEARTBEAT_INTERVAL = 60
 ANIMATION = __PULSE_ANIMATION
 
 FIREWALL_BLOCKING = json.load(open("config/FIREWALL_BLOCKING.json"))
-FIREWALL_OVPN = json.load(open("config/FIREWALL_OVPN.json"))
-DROPLET_OVPN = json.load(open("config/DROPLET_OVPN.json"))
+FIREWALL_OVPN = json.load(open("config/FIREWALL_OVPN.json", "rb"))
+DROPLET_OVPN = json.load(open("config/DROPLET_OVPN.json", "rb"))

@@ -3,3 +3,4 @@ prompter
 termcolor
 requests
 tabulate
+paramiko

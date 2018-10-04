@@ -3,4 +3,5 @@ prompter
 termcolor
 requests
 tabulate
-paramiko
+keyring
+getpass

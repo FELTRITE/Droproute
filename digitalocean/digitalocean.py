@@ -1,66 +1,46 @@
-import requests, json, os
+import requests
+import keyring
+import getpass
+import json
 
 
 class DigitalOcean(requests.Session):
 
     def __init__(self):
         super(DigitalOcean, self).__init__()
+        self.__api_endpoint = "https://api.digitalocean.com/v2"
+        self._service = self.__class__.__name__
+        self._os_user = getpass.getuser()
         self.access_token = self.__load_credential()
-        # todo remove these proxies!
-        self.verify = False
-        self.proxies.update({
-            "http":"http://127.0.0.1:8080",
-            "https":"http://127.0.0.1:8080"
-        })
-        # todo ^^^ remove these proxies ^^^
+
         self.headers.update({
             'Content-Type': 'application/json',
             'Authorization':'Bearer {}'.format(self.access_token)
         })
-        self.__api_endpoint = "https://api.digitalocean.com/v2"
-        self.account = self.__at_functionality_check()
+        self.account = self.__get_account_info()
 
-    def __reset_auth(self, errmsg):
-        print errmsg
-        access_token = self.__authenticate()
-        self.__save_credentials(access_token)
-        # Once New authentication is received, we reconstruct the class
-        return self.__init__()
 
     def __authenticate(self):
-        #TODO: if yer lazy - Direct user to token web page, else implement access grant flows
+        #TODO: if yer not lazy - Direct user to token web page, else implement access grant flows
         #I know this is shitty
-        print "Please refer to https://cloud.digitalocean.com/settings/api/tokens"
-        print "And generate a new Access token (call it whatever you want)"
-        at = raw_input("--> New Access Token: ")
+        print "[\] Please refer to https://cloud.digitalocean.com/settings/api/tokens"
+        print "[\] And generate a new Access token (call it whatever you want)"
+        at = getpass.getpass(prompt='[+] DO Access token: ')
+        self.__save_credentials(at)
         return at
 
-    def __save_credentials(self, data):
-        cwd = os.path.realpath(__file__)
-        fpath = os.path.join(os.path.split(cwd)[0], "Credentials.json")
-        jsondata = {"access_token": data}
-        with open(fpath, 'wb') as f:
-            json.dump(jsondata, f)
+    def __save_credentials(self, access_token):
+        print "[+] Saving {service} credentials for {user}.".format(service=self._service, user=self._os_user)
+        keyring.set_password(self._service, self._os_user, access_token)
 
     def __load_credential(self):
-        cwd = os.path.realpath(__file__)
-        fpath = os.path.join(os.path.split(cwd)[0], "Credentials.json")
-        try:
-            with open(fpath, 'rb') as f:
-                data = json.load(f)
-        except ValueError:
-            return self.__reset_auth("The Available Credential file is corrupted.")
-
-        if not isinstance(data, dict):
-            return self.__reset_auth("The Available Credential file is deformated.")
-
-        elif not data.has_key("access_token"):
-            return self.__reset_auth("It seems You have yet to supply an Access token.")
-
-        elif len(data['access_token']) != 64:
-            return self.__reset_auth("It seems the Access Token available is defected or missing,")
-
-        return data['access_token']
+        print "[+] Loading {service} credentials for {user}.".format(service=self._service, user=self._os_user)
+        credential = keyring.get_password(self._service, self._os_user)
+        if credential is None:
+            print "[X] There are no {service} credentials for {user}.".format(service=self._service, user=self._os_user)
+            self.__authenticate()
+            return self.__load_credential()
+        return credential
 
     def api(self, action, uri, body='{}'):
         """
@@ -95,12 +75,12 @@ class DigitalOcean(requests.Session):
             )
         return api_response
 
-    def __at_functionality_check(self):
+    def __get_account_info(self):
         response = self.api('GET', 'account')
         if response.has_key("id"):
             if response['id'] == "forbidden":
                 self.__reset_auth("Your Access token does not have proper Permissions.")
             elif response['id'] == "unauthorized":
                 self.__reset_auth("Your Access token is no longer valid.")
-            return self.__at_functionality_check()
+            return self.__get_account_info()
         return response

@@ -1,7 +1,0 @@
-animation
-prompter
-termcolor
-requests
-tabulate
-keyring
-getpass

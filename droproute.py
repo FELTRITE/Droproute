@@ -1,10 +1,10 @@
 # -*- coding: utf-8 -*-
 from termcolor import colored
+import colorama
+colorama.init()
 from tabulate import tabulate
-import animation
-import prompter
 import uuid
-import os
+import time
 import digitalocean
 from config import config
 
@@ -18,13 +18,13 @@ class DropRoute(digitalocean.DigitalOcean):
         global UUID
 
         super(DropRoute, self).__init__()
-        self.tag = UUID
+        self.tag = "{0}-{1}".format(self.__class__.__name__, UUID)
         self.online = False
         self.droplet_id = None
         self.firewall_id = None
         self.datacenter = None
-        self.droplet_name = "-".join([self.tag, "droplet"])
-        self.firewall_name = "-".join([self.tag, "firewall"])
+        self.droplet_name = "{0}-{1}".format(self.tag, "droplet")
+        self.firewall_name = "{0}-{1}".format(self.tag, "firewall")
         self.asset_configuration = {
                         "FIREWALL_BLOCKING": config.FIREWALL_BLOCKING,
                         "FIREWALL_OVPN": config.FIREWALL_OVPN,
@@ -50,8 +50,7 @@ class DropRoute(digitalocean.DigitalOcean):
         return [colored(row[1], 'red'), colored(row[2], 'red')]
 
     def display_available_regions(self):
-        _loading = animation.Wait(text="[+] Pending API Query ", animation=config.ANIMATION)
-        _loading.start()
+        print("[+] Displaying available regions")
         regions_json = self.api('get', 'regions')
         regions_list = regions_json['regions']
 
@@ -60,22 +59,37 @@ class DropRoute(digitalocean.DigitalOcean):
 
         # convert from Json to a List (column) of list (row)
         tab_data = [[iter['available'], iter['name'].rsplit(' ', 1)[0], iter['slug']] for iter in regions_list]
+        tab_data.sort(key=lambda x: x[1]) # sort ist by region name
 
         # termcoloring, converting True/False to Blue/Red colored rows
         colored_tab_data = map(self.__availability_color_mapping, tab_data)
 
-        _loading.stop()
         print(tabulate(tab_headers+colored_tab_data, showindex="always", headers="firstrow"))
         return regions_list
+
+    def __wait_for_droplet_status(self, resume_status, message=None):
+        """
+        Wait for
+        :param resume_status (string): when desired status is reached, continue.
+        """
+        if message:
+            print message
+        #todo: Start animation
+        while True:
+            response = self.api("GET", "droplets/{}".format(self.droplet_id))
+            if response['droplet']['status'] == resume_status:
+                #Reached wait trigger! continuing
+                #todo: end animation
+                break
+            time.sleep(config.STATUS_SAMPLEING_INTERVAL)
+
 
     # -- Asset allocation
     def create_tag(self):
         self.api("POST", "tags", body={"name": str(self.tag)})
-        print "[+] Created: TAG {}".format(self.tag)
 
     def delete_tag(self):
         self.api("DELETE", "tags/{uri}".format(uri=self.tag))
-        print "[+] Deleted: TAG {}".format(colored(self.tag, "red"))
 
     def deploy_droplet(self):
         print "[+] Deploying Droplet {name}".format(name=colored(self.droplet_name, "green"))
@@ -84,6 +98,10 @@ class DropRoute(digitalocean.DigitalOcean):
         })
         response = self.api("POST", "droplets", body=self.asset_configuration['DROPLET_OVPN'])
         self.droplet_id = response['droplet']['id']
+
+        # Wait for droplet to finish loading
+        self.__wait_for_droplet_status('active', message = "[\] Pending droplet deployment...")
+
         print "[+] Created Droplet {id}".format(id=colored(self.droplet_id, "green"))
 
     def destroy_droplet(self):
@@ -125,9 +143,8 @@ class DropRoute(digitalocean.DigitalOcean):
 
 
 
-def load_client_locally(client_config="/home/derman/client.ovpn"):
+def load_client_locally():
     # Todo: load client config to local ovpn bin
-    os.system("openvpn --config {clientconfigpath} --ipchange echo yess ".format(clientconfigpath=client_config))
     pass
 
 
@@ -148,16 +165,7 @@ def __prompt_route_decommissioning():
         # chose to keep
         print "[+] ok."
         return True
-
-    else:
-        # chose to destroy
-        if not prompter.yesno("--> Are you sure?", default='no', suffix="\n"):
-            # chose to destroy, kill
-            return False
-
-        print "[+] ok. keeping route up"
-        return True
-
+    return False
 
 def interactive_mode(Digimon):
     datacenter_list = Digimon.display_available_regions()
@@ -169,14 +177,12 @@ def interactive_mode(Digimon):
 
     # todo start heartbeat monitor threading!
     # todo pulse and check droplet to see whether its setup is completed
-    _loading = animation.Wait(text='', animation=config.ANIMATION)
-    _loading.start()
+
     load_client_locally()
     while Digimon.online:
         if not __prompt_route_decommissioning():
             # Proceed only when Decommissioning the route
             break
-    _loading.stop()
     Digimon.destroy_Infrastructure()
 
 

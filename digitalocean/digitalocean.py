@@ -1,16 +1,17 @@
 import requests
 import keyring
-import getpass
 import json
+import os
 
 
 class DigitalOcean(requests.Session):
 
     def __init__(self):
         super(DigitalOcean, self).__init__()
+        # self.verify = False #todo: remove this!
         self.__api_endpoint = "https://api.digitalocean.com/v2"
         self._service = self.__class__.__name__
-        self._os_user = getpass.getuser()
+        self._os_user = os.environ.get('USERNAME')
         self.access_token = self.__load_credential()
 
         self.headers.update({
@@ -25,8 +26,9 @@ class DigitalOcean(requests.Session):
         #I know this is shitty
         print "[\] Please refer to https://cloud.digitalocean.com/settings/api/tokens"
         print "[\] And generate a new Access token (call it whatever you want)"
-        at = getpass.getpass(prompt='[+] DO Access token: ')
+        at = raw_input('[+] DO Access token: ')
         self.__save_credentials(at)
+
         return at
 
     def __save_credentials(self, access_token):

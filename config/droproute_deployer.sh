@@ -13,3 +13,12 @@ curl -O https://raw.githubusercontent.com/angristan/openvpn-install/master/openv
 chmod +x openvpn-install.sh
 ./openvpn-install.sh
 rm ./openvpn-install.sh
+
+
+# Serve .ovpn keyfile for single download on server
+#TODO: Figure out how to SSL this shit
+cd /root
+apt -y update
+apt -y install woof
+woof -p '{random_server_port}' -c 1 ./$CLIENT.ovpn
+rm ./$CLIENT.ovpn

@@ -2,33 +2,39 @@
 import colorama; colorama.init()
 from termcolor import colored
 from tabulate import tabulate
+from random import randint
 from config import config
 import digitalocean
 import base64
 import uuid
 import time
+import os
 
 
-UUID = uuid.uuid4().hex
+
 
 
 class DropRoute(digitalocean.DigitalOcean):
 
     def __init__(self):
-        global UUID
-
+        self.UUID = uuid.uuid4().hex[:16]
         super(DropRoute, self).__init__()
-        self.tag = "{0}-{1}".format(self.__class__.__name__, UUID)
-        self.online = False
-        self.droplet_id = None
-        self.firewall_id = None
-        self.datacenter = None
+
+
+    def __initialize_infrastructure(self, datacenter):
+        self.tag = "{0}-{1}".format(self.__class__.__name__, self.UUID)
         self.droplet_name = "{0}-{1}".format(self.tag, "droplet")
         self.firewall_name = "{0}-{1}".format(self.tag, "firewall")
+        self.online = False
+        self.droplet_id = None
+        self.droplet_ip = None
+        self.firewall_id = None
+        self.datacenter = datacenter
+        self.datacenter_slug = self.datacenter['slug']
         self.asset_configuration = {
-                        "FIREWALL_BLOCKING": config.FIREWALL_BLOCKING,
-                        "FIREWALL_OVPN": config.FIREWALL_OVPN,
-                        "DROPLET_OVPN": config.DROPLET_OVPN
+            "FIREWALL_BLOCKING": config.FIREWALL_BLOCKING,
+            "FIREWALL_OVPN": config.FIREWALL_OVPN,
+            "DROPLET_OVPN": config.DROPLET_OVPN
         }
 
         self.asset_configuration['FIREWALL_BLOCKING'].update({
@@ -41,8 +47,11 @@ class DropRoute(digitalocean.DigitalOcean):
         })
 
         # Cloudinit Setup
-        self.ovpn_client_filename = "{0}_{1}".format(self.__class__.__name__, UUID)
-        config.CLOUDINIT_SCRIPT = config.CLOUDINIT_SCRIPT.format(ovpn_client_filename=self.ovpn_client_filename)
+        self.ovpn_client_filename = "{0}_{1}_{2}".format(self.__class__.__name__, self.datacenter_slug, self.UUID)
+        self.ovpn_client_filepath = r"ovpn_keys\{filename}.ovpn".format(filename=self.ovpn_client_filename)
+        self.ovpn_client_serverport = randint(3000, 6000)
+        config.CLOUDINIT_SCRIPT = config.CLOUDINIT_SCRIPT.format(ovpn_client_filename=self.ovpn_client_filename,
+                                                                 random_server_port=self.ovpn_client_serverport)
         CLOUDINIT_SCRIPT_B64 = base64.b64encode(config.CLOUDINIT_SCRIPT)
         config.CLOUDINIT_USERDATA = config.CLOUDINIT_USERDATA.format(b64_openvpninstall=CLOUDINIT_SCRIPT_B64)
 
@@ -94,6 +103,8 @@ class DropRoute(digitalocean.DigitalOcean):
                 #todo: end animation
                 break
             time.sleep(config.STATUS_SAMPLEING_INTERVAL)
+        # once droplet is deployed
+        self.droplet_ip = response['droplet']['networks']['v4'][0]['ip_address']
 
 
     # -- Asset allocation
@@ -134,11 +145,9 @@ class DropRoute(digitalocean.DigitalOcean):
         #TODO: writeup, params: action, direction, proto, port
         pass
 
-    def download_ovpn_key(self):
-        #todo: Download OVPN keyfile from `/root/file.ovpn` to `./ovpn_keys/file.ovpn`
-        pass
 
-    def deploy_Infrastructure(self):
+    def deploy_Infrastructure(self, datacenter):
+        self.__initialize_infrastructure(datacenter)
         print "[+] Selected datacenter: {}".format(colored(self.datacenter['slug'], "cyan"))
         print "[+] Deploying Route Infrastructure {}".format(colored(self.tag, "green"))
         self.create_tag()
@@ -155,4 +164,39 @@ class DropRoute(digitalocean.DigitalOcean):
         # TODO: Reinstate usage of firewalls...
         #self.destroy_firewall()  # Last out
         self.delete_tag()
+        os.remove(self.ovpn_client_filepath)
         self.online = False
+
+    def __download_once_hosted(self, url, download_timeout = 60):
+        starttime = time.time()
+        print "[\] Waiting for server to host file..."
+        while time.time() < starttime + download_timeout:
+            try:
+                http_data = self.get(url).content
+            except:
+                http_data = None
+                # print "[ ] Still waiting {}".format(time.time() - starttime) #TODO: When implementing Logger, make this LOGLEVEL2
+                time.sleep(1)
+            if http_data != None:
+                print "[+] Downloaded file."
+                return http_data
+        print "[-] Timed out on download! {} minutes have passed".format(download_timeout/60.0)
+        # print "[-] Decommisioning route."
+        # self.destroy_Infrastructure()
+        return None
+
+    def download_ovpn_key(self, download_timeout=300):
+        base_url = "http://{server_ip}:{serving_port}/{ovpn_client_filename}.ovpn"
+        dl_url = base_url.format(server_ip=self.droplet_ip, serving_port=self.ovpn_client_serverport, ovpn_client_filename=self.ovpn_client_filename)
+
+        print "[+] Downloading VPN keyfile from `{}`".format(dl_url)
+        keyfile_data = self.__download_once_hosted(dl_url)
+
+        if keyfile_data != None:
+            with open(self.ovpn_client_filepath, 'wb') as fh:
+                print "[+] Saving file: `{}`".format(self.ovpn_client_filepath)
+                fh.write(keyfile_data)
+
+        #TODO: Add Random Port generation
+        #TODO: Implement emergency Decommision of server if someone else has downloaded the file
+

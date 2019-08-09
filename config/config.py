@@ -24,7 +24,7 @@ FIREWALL_BLOCKING = json.load(open("config/FIREWALL_BLOCKING.json"))
 FIREWALL_OVPN = json.load(open("config/FIREWALL_OVPN.json", "rb"))
 DROPLET_OVPN = json.load(open("config/DROPLET_OVPN.json", "rb"))
 
-with open("config/openvpn-install_config.sh", "r") as fh:
+with open("config/droproute_deployer.sh", "r") as fh:
     CLOUDINIT_SCRIPT = fh.read()
 
 with open("config/cloudinit.cfg", "r") as fh:

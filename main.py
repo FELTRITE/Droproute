@@ -1,6 +1,7 @@
 from droproute import *
 import prompter
 
+#TODO: Use Version Parameter from Git Tags (Versioneer library?)
 __version__ = "0.1"
 
 def load_client_locally():
@@ -31,13 +32,10 @@ def interactive_mode(Digimon):
     datacenter_list = Digimon.display_available_regions()
     selected_region_index = prompt_select("Select region", datacenter_list)
 
-    Digimon.datacenter = datacenter_list[selected_region_index]
-    Digimon.deploy_Infrastructure()
+    desired_datacenter = datacenter_list[selected_region_index]
+    Digimon.deploy_Infrastructure(desired_datacenter)
 
-
-    # todo start heartbeat monitor threading!
-    # todo pulse and check droplet to see whether its setup is completed
-
+    Digimon.download_ovpn_key()
     load_client_locally()
     while Digimon.online:
         if not __prompt_route_decommissioning():
@@ -54,3 +52,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+#TODO: Add requirments file
+#TODO: Use Logger Library
+#TODO: Enhance Readme.md
+#TODO: Consider adding IP verification (like wtfismyip.com/json or smth..)

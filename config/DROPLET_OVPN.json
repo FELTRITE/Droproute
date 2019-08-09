@@ -1,8 +1,8 @@
 {
   "name": null,
   "region": null,
-  "size": "512mb",
-  "image": "ubuntu-14-04-x64",
+  "size": "s-1vcpu-1gb",
+  "image": "ubuntu-18-04-x64",
   "ssh_keys": null,
   "backups": false,
   "ipv6": false,

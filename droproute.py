@@ -1,14 +1,14 @@
 # -*- coding: utf-8 -*-
+import colorama; colorama.init()
 from termcolor import colored
-import colorama
-colorama.init()
 from tabulate import tabulate
+from config import config
+import digitalocean
+import base64
 import uuid
 import time
-import digitalocean
-from config import config
 
-__version__ = "0.1"
+
 UUID = uuid.uuid4().hex
 
 
@@ -39,10 +39,19 @@ class DropRoute(digitalocean.DigitalOcean):
             "name": self.firewall_name,
             "tags": [self.tag]
         })
+
+        # Cloudinit Setup
+        self.ovpn_client_filename = "{0}_{1}".format(self.__class__.__name__, UUID)
+        config.CLOUDINIT_SCRIPT = config.CLOUDINIT_SCRIPT.format(ovpn_client_filename=self.ovpn_client_filename)
+        CLOUDINIT_SCRIPT_B64 = base64.b64encode(config.CLOUDINIT_SCRIPT)
+        config.CLOUDINIT_USERDATA = config.CLOUDINIT_USERDATA.format(b64_openvpninstall=CLOUDINIT_SCRIPT_B64)
+
         self.asset_configuration['DROPLET_OVPN'].update({
             "name": self.droplet_name,
-            "tags": [self.tag]
+            "tags": [self.tag],
+            "user_data": """{}""".format(config.CLOUDINIT_USERDATA)
         })
+
 
     def __availability_color_mapping(self, row):
         if row[0]:
@@ -59,7 +68,10 @@ class DropRoute(digitalocean.DigitalOcean):
 
         # convert from Json to a List (column) of list (row)
         tab_data = [[iter['available'], iter['name'].rsplit(' ', 1)[0], iter['slug']] for iter in regions_list]
-        tab_data.sort(key=lambda x: x[1]) # sort ist by region name
+
+        # Sort Alphabetically
+        tab_data.sort(key=lambda x: x[1]) # sort list by region name
+        regions_list = sorted(regions_list)
 
         # termcoloring, converting True/False to Blue/Red colored rows
         colored_tab_data = map(self.__availability_color_mapping, tab_data)
@@ -109,9 +121,8 @@ class DropRoute(digitalocean.DigitalOcean):
         print "[+] Deleted: DROPLET {}".format(colored(self.droplet_name, "red"))
     
     def deploy_firewall(self):
-        # deploys a blocking firewall (except ssh)
         print "[+] Deploying Firewall {name}".format(name=colored(self.firewall_name, "green"))
-        response = self.api("POST", "firewalls", body=self.asset_configuration['FIREWALL_BLOCKING'])
+        response = self.api("POST", "firewalls", body=self.asset_configuration['FIREWALL_OVPN'])
         self.firewall_id = response['firewall']['id']
         print "[+] Created Firewall {id}".format(id=colored(self.firewall_id, "green"))
 
@@ -120,77 +131,28 @@ class DropRoute(digitalocean.DigitalOcean):
         print "[+] Deleted: FIREWALL {}".format(colored(self.firewall_name, "red"))
 
     def update_firewall_rule(self, new_rule):
-        # todo writeup, params: action, direction, proto, port
+        #TODO: writeup, params: action, direction, proto, port
+        pass
+
+    def download_ovpn_key(self):
+        #todo: Download OVPN keyfile from `/root/file.ovpn` to `./ovpn_keys/file.ovpn`
         pass
 
     def deploy_Infrastructure(self):
         print "[+] Selected datacenter: {}".format(colored(self.datacenter['slug'], "cyan"))
         print "[+] Deploying Route Infrastructure {}".format(colored(self.tag, "green"))
         self.create_tag()
-        self.deploy_firewall()  # First in
+        #TODO: Reinstate usage of firewalls...
+        #self.deploy_firewall()  # First in
         self.deploy_droplet()
-        #TODO: Deploy OVPN server with ovpn-deployer
-        self.update_firewall_rule(config.FIREWALL_OVPN)
+        #self.update_firewall_rule(config.FIREWALL_OVPN)
         self.online = True
         return True
          
     def destroy_Infrastructure(self):
         print "[+] Decommisioning Route Infrastructure {}".format(colored(self.tag, "red"))
         self.destroy_droplet()
-        self.destroy_firewall()  # Last out
+        # TODO: Reinstate usage of firewalls...
+        #self.destroy_firewall()  # Last out
         self.delete_tag()
         self.online = False
-
-
-
-def load_client_locally():
-    # Todo: load client config to local ovpn bin
-    pass
-
-
-def prompt_select(display_message, option_list):
-    # list --> Chosen selection index
-    selection = prompter.prompt(" ".join(["-->",
-                                          display_message,
-                                          "(1-{})".format(len(option_list)-1),
-                                          ":"]))
-    if not selection.isdigit() or not len(option_list)> int(selection) >= 0:
-        print "#ERR: Supplied an invalid option!"
-        return prompt_select(display_message, option_list)
-    return int(selection)
-
-
-def __prompt_route_decommissioning():
-    if prompter.yesno("--> Destroy route?", default='no', suffix="\n"):
-        # chose to keep
-        print "[+] ok."
-        return True
-    return False
-
-def interactive_mode(Digimon):
-    datacenter_list = Digimon.display_available_regions()
-    selected_region_index = prompt_select("Select region", datacenter_list)
-
-    Digimon.datacenter = datacenter_list[selected_region_index]
-    Digimon.deploy_Infrastructure()
-
-
-    # todo start heartbeat monitor threading!
-    # todo pulse and check droplet to see whether its setup is completed
-
-    load_client_locally()
-    while Digimon.online:
-        if not __prompt_route_decommissioning():
-            # Proceed only when Decommissioning the route
-            break
-    Digimon.destroy_Infrastructure()
-
-
-def main():
-    print colored(config.asciiart.format(ver=__version__), 'yellow')
-    Digimon = DropRoute()
-    interactive_mode(Digimon)
-
-
-if __name__ == '__main__':
-    main()

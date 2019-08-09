@@ -23,6 +23,7 @@ class DigitalOcean(requests.Session):
 
     def __authenticate(self):
         #TODO: if yer not lazy - Direct user to token web page, else implement access grant flows
+        # try import webbrowser
         #I know this is shitty
         print "[\] Please refer to https://cloud.digitalocean.com/settings/api/tokens"
         print "[\] And generate a new Access token (call it whatever you want)"
@@ -37,7 +38,9 @@ class DigitalOcean(requests.Session):
 
     def __load_credential(self):
         print "[+] Loading {service} credentials for {user}.".format(service=self._service, user=self._os_user)
-        credential = keyring.get_password(self._service, self._os_user)
+        #TODO: Load credentials from filevault with keyring...
+        # credential = keyring.get_password(self._service, self._os_user)
+        credential = '------'
         if credential is None:
             print "[X] There are no {service} credentials for {user}.".format(service=self._service, user=self._os_user)
             self.__authenticate()

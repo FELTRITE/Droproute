@@ -20,7 +20,6 @@ STATUS_SAMPLEING_INTERVAL = 5
 ANIMATION = __PULSE_ANIMATION
 
 #TODO: USe configparser library instead...
-FIREWALL_BLOCKING = json.load(open("config/FIREWALL_BLOCKING.json"))
 FIREWALL_OVPN = json.load(open("config/FIREWALL_OVPN.json", "rb"))
 DROPLET_OVPN = json.load(open("config/DROPLET_OVPN.json", "rb"))
 

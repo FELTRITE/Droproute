@@ -20,5 +20,5 @@ rm ./openvpn-install.sh
 cd /root
 apt -y update
 apt -y install woof
-woof -p '{random_server_port}' -c 1 ./$CLIENT.ovpn
+woof -p '{random_server_port}' -c 4 ./$CLIENT.ovpn
 rm ./$CLIENT.ovpn

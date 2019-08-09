@@ -57,4 +57,3 @@ if __name__ == '__main__':
 #TODO: Add requirments file
 #TODO: Use Logger Library
 #TODO: Enhance Readme.md
-#TODO: Consider adding IP verification (like wtfismyip.com/json or smth..)

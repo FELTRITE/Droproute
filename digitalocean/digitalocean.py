@@ -8,7 +8,6 @@ class DigitalOcean(requests.Session):
 
     def __init__(self):
         super(DigitalOcean, self).__init__()
-        # self.verify = False #todo: remove this!
         self.__api_endpoint = "https://api.digitalocean.com/v2"
         self._service = self.__class__.__name__
         self._os_user = os.environ.get('USERNAME')
@@ -38,9 +37,7 @@ class DigitalOcean(requests.Session):
 
     def __load_credential(self):
         print "[+] Loading {service} credentials for {user}.".format(service=self._service, user=self._os_user)
-        #TODO: Load credentials from filevault with keyring...
-        # credential = keyring.get_password(self._service, self._os_user)
-        credential = '------'
+        credential = keyring.get_password(self._service, self._os_user)
         if credential is None:
             print "[X] There are no {service} credentials for {user}.".format(service=self._service, user=self._os_user)
             self.__authenticate()

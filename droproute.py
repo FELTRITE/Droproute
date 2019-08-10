@@ -41,7 +41,6 @@ class DropRoute(digitalocean.DigitalOcean):
 
         # Droplet & Firewall configuration
         self.asset_configuration = {
-            "FIREWALL_OVPN": config.FIREWALL_OVPN,
             "DROPLET_OVPN": config.DROPLET_OVPN
         }
         self.asset_configuration['DROPLET_OVPN'].update({

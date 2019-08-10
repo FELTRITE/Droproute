@@ -32,7 +32,6 @@ def interactive_mode(Digimon):
     Digimon.deploy_Infrastructure(desired_datacenter)
 
     Digimon.download_ovpn_key()
-    load_client_locally()
     while Digimon.online:
         if not __prompt_route_decommissioning():
             # Proceed only when Decommissioning the route

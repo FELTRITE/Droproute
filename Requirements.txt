@@ -1,0 +1,6 @@
+termcolor
+tabulate
+colorama
+prompter
+requests
+keyring

@@ -1,11 +1,24 @@
 # Droproute
 
 <img src="https://raw.githubusercontent.com/feltrite/Droproute/logo-view-branch/droproute.jpg" width="300" align="right">
-automated VPN deployment (Digital Ocean account required)
+Automated VPN deployment 
 
 short for Droplet-Route,
 Droproute is a script that deployes a minimal Digital Ocean
-droplet with an OpenVPN server. the user specifies the desired
-droplet region (country + datacenter).
+droplet with a configured OpenVPN server. the user specifies the desired
+droplet region (country/datacenter).
 
 outputs an ovpn client config.
+
+
+### Dependencies
+Run the following command in the script directory to install package requirements.
+```
+pip install -r Requirements.txt
+```
+
+### Usage 
+After installing dependencies, have fun
+```
+python main.py
+```

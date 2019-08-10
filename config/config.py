@@ -19,8 +19,6 @@ __PULSE_ANIMATION = (
 STATUS_SAMPLEING_INTERVAL = 5
 ANIMATION = __PULSE_ANIMATION
 
-#TODO: USe configparser library instead...
-FIREWALL_OVPN = json.load(open("config/FIREWALL_OVPN.json", "rb"))
 DROPLET_OVPN = json.load(open("config/DROPLET_OVPN.json", "rb"))
 
 with open("config/droproute_deployer.sh", "r") as fh:

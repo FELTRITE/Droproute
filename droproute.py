@@ -1,23 +1,21 @@
 # -*- coding: utf-8 -*-
-import colorama; colorama.init()
 from termcolor import colored
 from tabulate import tabulate
 from random import randint
 from config import config
 import digitalocean
+import colorama
 import base64
 import uuid
 import time
 import os
 
 
-
-
-
 class DropRoute(digitalocean.DigitalOcean):
 
     def __init__(self):
         self.UUID = uuid.uuid4().hex[:16]
+        colorama.init()
         super(DropRoute, self).__init__()
 
 
@@ -31,7 +29,6 @@ class DropRoute(digitalocean.DigitalOcean):
         self.firewall_id = None
         self.datacenter = datacenter
         self.datacenter_slug = self.datacenter['slug']
-
 
         # Cloudinit Setup
         self.ovpn_client_filename = "{0}_{1}_{2}".format(self.__class__.__name__, self.datacenter_slug, self.UUID)
@@ -53,16 +50,6 @@ class DropRoute(digitalocean.DigitalOcean):
             "tags": [self.tag],
             "user_data": """{}""".format(config.CLOUDINIT_USERDATA)
         })
-        self.asset_configuration['FIREWALL_OVPN'].update({
-            "name": self.firewall_name,
-            "tags": [self.tag]
-        })
-        for rule in self.asset_configuration['FIREWALL_OVPN']['outbound_rules']:
-            if rule['ports'] == 'ovpn_client_serverport':
-                rule.update({'ports': self.ovpn_client_serverport})
-        for rule in self.asset_configuration['FIREWALL_OVPN']['inbound_rules']:
-            if rule['ports'] == 'ovpn_client_serverport':
-                rule.update({'ports': self.ovpn_client_serverport})
 
 
     def __availability_color_mapping(self, row):
@@ -98,12 +85,10 @@ class DropRoute(digitalocean.DigitalOcean):
         """
         if message:
             print message
-        #todo: Start animation
         while True:
             response = self.api("GET", "droplets/{}".format(self.droplet_id))
             if response['droplet']['status'] == resume_status:
                 #Reached wait trigger! continuing
-                #todo: end animation
                 break
             time.sleep(config.STATUS_SAMPLEING_INTERVAL)
         # once droplet is deployed
@@ -134,24 +119,11 @@ class DropRoute(digitalocean.DigitalOcean):
         self.api("DELETE", "droplets/{uri}".format(uri=self.droplet_id))
         print "[+] Deleted: DROPLET {}".format(colored(self.droplet_name, "red"))
 
-    def deploy_firewall(self):
-        print "[+] Deploying Firewall {name}".format(name=colored(self.firewall_name, "green"))
-        response = self.api("POST", "firewalls", body=self.asset_configuration['FIREWALL_OVPN'])
-        self.firewall_id = response['firewall']['id']
-        print "[+] Created Firewall {id}".format(id=colored(self.firewall_id, "green"))
-
-    def destroy_firewall(self):
-        self.api("DELETE", "firewalls/{uri}".format(uri=self.firewall_id))
-        print "[+] Deleted: FIREWALL {}".format(colored(self.firewall_name, "red"))
-
-
     def deploy_Infrastructure(self, datacenter):
         self.__initialize_infrastructure(datacenter)
         print "[+] Selected datacenter: {}".format(colored(self.datacenter['slug'], "cyan"))
         print "[+] Deploying Route Infrastructure {}".format(colored(self.tag, "green"))
         self.create_tag()
-        #TODO: Reinstate usage of firewalls...
-        # self.deploy_firewall()
         self.deploy_droplet()
         self.online = True
         return True
@@ -159,7 +131,6 @@ class DropRoute(digitalocean.DigitalOcean):
     def destroy_Infrastructure(self):
         print "[+] Decommisioning Route Infrastructure {}".format(colored(self.tag, "red"))
         self.destroy_droplet()
-        # self.destroy_firewall()
         self.delete_tag()
         os.remove(self.ovpn_client_filepath)
         self.online = False
@@ -172,14 +143,13 @@ class DropRoute(digitalocean.DigitalOcean):
                 http_data = self.get(url).content
             except:
                 http_data = None
-                # print "[ ] Still waiting {}".format(time.time() - starttime) #TODO: When implementing Logger, make this LOGLEVEL2
                 time.sleep(1)
             if http_data != None:
                 print "[+] Downloaded file."
                 return http_data
         print "[-] Timed out on download! {} minutes have passed".format(download_timeout/60.0)
-        # print "[-] Decommisioning route."
-        # self.destroy_Infrastructure()
+        print "[-] Decommisioning route."
+        self.destroy_Infrastructure()
         return None
 
     def download_ovpn_key(self):

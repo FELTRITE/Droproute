@@ -1,12 +1,8 @@
 from droproute import *
 import prompter
 
-#TODO: Use Version Parameter from Git Tags (Versioneer library?)
-__version__ = "0.1"
+__version__ = "1.0"
 
-def load_client_locally():
-    # Todo: load client config to local ovpn bin
-    pass
 
 
 def prompt_select(display_message, option_list):
@@ -52,8 +48,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-#TODO: Add requirments file
-#TODO: Use Logger Library
-#TODO: Enhance Readme.md

@@ -9,3 +9,16 @@ droplet with a configured OpenVPN server. the user specifies the desired
 droplet region (country/datacenter).
 
 outputs an ovpn client config.
+
+
+### Dependencies
+Run the following command in the script directory to install package requirements.
+```
+pip install -r Requirements.txt
+```
+
+### Usage 
+After installing depencies, have fun
+```
+python main.py
+```

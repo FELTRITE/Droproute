@@ -18,7 +18,7 @@ pip install -r Requirements.txt
 ```
 
 ### Usage 
-After installing depencies, have fun
+After installing dependencies, have fun
 ```
 python main.py
 ```

@@ -21,8 +21,6 @@ class DigitalOcean(requests.Session):
 
 
     def __authenticate(self):
-        #TODO: if yer not lazy - Direct user to token web page, else implement access grant flows
-        # try import webbrowser
         #I know this is shitty
         print "[\] Please refer to https://cloud.digitalocean.com/settings/api/tokens"
         print "[\] And generate a new Access token (call it whatever you want)"

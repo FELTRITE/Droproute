@@ -18,7 +18,6 @@ class DropRoute(digitalocean.DigitalOcean):
         colorama.init()
         super(DropRoute, self).__init__()
 
-
     def __initialize_infrastructure(self, datacenter):
         self.tag = "{0}-{1}".format(self.__class__.__name__, self.UUID)
         self.droplet_name = "{0}-{1}".format(self.tag, "droplet")
@@ -50,7 +49,6 @@ class DropRoute(digitalocean.DigitalOcean):
             "tags": [self.tag],
             "user_data": """{}""".format(config.CLOUDINIT_USERDATA)
         })
-
 
     def __availability_color_mapping(self, row):
         if row[0]:
@@ -93,7 +91,6 @@ class DropRoute(digitalocean.DigitalOcean):
             time.sleep(config.STATUS_SAMPLEING_INTERVAL)
         # once droplet is deployed
         self.droplet_ip = response['droplet']['networks']['v4'][0]['ip_address']
-
 
     # -- Asset allocation
     def create_tag(self):

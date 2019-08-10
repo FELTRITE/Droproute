@@ -1,3 +1,4 @@
 .idea/
+ovpn_keys/*
 *.pyc
 *.ovpn

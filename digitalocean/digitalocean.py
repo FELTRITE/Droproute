@@ -1,7 +1,7 @@
 import requests
 import keyring
+import getpass
 import json
-import os
 
 
 class DigitalOcean(requests.Session):
@@ -10,7 +10,7 @@ class DigitalOcean(requests.Session):
         super(DigitalOcean, self).__init__()
         self.__api_endpoint = "https://api.digitalocean.com/v2"
         self._service = self.__class__.__name__
-        self._os_user = os.environ.get('USERNAME')
+        self._os_user = getpass.getuser()
         self.access_token = self.__load_credential()
 
         self.headers.update({
@@ -34,12 +34,12 @@ class DigitalOcean(requests.Session):
         keyring.set_password(self._service, self._os_user, access_token)
 
     def __load_credential(self):
-        if self._os_user is None:
+        print "[+] Loading {service} credentials for {user}.".format(service=self._service, user=self._os_user)
+        credential = keyring.get_password(self._service, self._os_user)
+        if credential is None:
             print "[X] There are no {service} credentials for {user}.".format(service=self._service, user=self._os_user)
             self.__authenticate()
             return self.__load_credential()
-        print "[+] Loading {service} credentials for {user}.".format(service=self._service, user=self._os_user)
-        credential = keyring.get_password(self._service, self._os_user)
         return credential
 
     def api(self, action, uri, body='{}'):

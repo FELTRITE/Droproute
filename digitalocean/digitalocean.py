@@ -34,12 +34,12 @@ class DigitalOcean(requests.Session):
         keyring.set_password(self._service, self._os_user, access_token)
 
     def __load_credential(self):
-        print "[+] Loading {service} credentials for {user}.".format(service=self._service, user=self._os_user)
-        credential = keyring.get_password(self._service, self._os_user)
-        if credential is None:
+        if self._os_user is None:
             print "[X] There are no {service} credentials for {user}.".format(service=self._service, user=self._os_user)
             self.__authenticate()
             return self.__load_credential()
+        print "[+] Loading {service} credentials for {user}.".format(service=self._service, user=self._os_user)
+        credential = keyring.get_password(self._service, self._os_user)
         return credential
 
     def api(self, action, uri, body='{}'):

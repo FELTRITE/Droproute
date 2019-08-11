@@ -143,7 +143,7 @@ class DropRoute(digitalocean.DigitalOcean):
             if http_data != None:
                 print "[+] Downloaded file."
                 return http_data
-        print "[-] Timed out on download! {} minutes have passed".format(download_timeout/60.0)
+        print "[-] Timed out on download! {} minutes have passed".format(self.ovpn_client_download_timeout/60.0)
         print "[-] Decommisioning route."
         self.destroy_Infrastructure()
         return None

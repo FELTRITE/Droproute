@@ -18,6 +18,7 @@ git clone https://github.com/feltrite/Droproute.git
 cd Droproute/
 pip install -r Requirements.txt
 ```
+In the intial use you'll be asked to create a Digitalocean access token.
 
 ### Usage 
 After installing dependencies, have fun

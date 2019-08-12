@@ -25,3 +25,4 @@ After installing dependencies, have fun
 ```
 python main.py
 ```
+An OpenVPN keyfile will be created and placed in the 'ovpn_keys' folder.

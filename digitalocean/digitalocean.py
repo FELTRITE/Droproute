@@ -1,7 +1,7 @@
 import requests
 import keyring
+import getpass
 import json
-import os
 
 
 class DigitalOcean(requests.Session):
@@ -10,9 +10,8 @@ class DigitalOcean(requests.Session):
         super(DigitalOcean, self).__init__()
         self.__api_endpoint = "https://api.digitalocean.com/v2"
         self._service = self.__class__.__name__
-        self._os_user = os.environ.get('USERNAME')
+        self._os_user = getpass.getuser()
         self.access_token = self.__load_credential()
-
         self.headers.update({
             'Content-Type': 'application/json',
             'Authorization':'Bearer {}'.format(self.access_token)

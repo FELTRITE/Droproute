@@ -11,11 +11,14 @@ droplet region (country/datacenter).
 outputs an ovpn client config.
 
 
-### Dependencies
+### Installation
 Run the following command in the script directory to install package requirements.
 ```
+git clone https://github.com/feltrite/Droproute.git
+cd Droproute/
 pip install -r Requirements.txt
 ```
+In the intial use you'll be asked to create a Digitalocean access token.
 
 ### Usage 
 After installing dependencies, have fun

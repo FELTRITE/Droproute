@@ -31,6 +31,8 @@ class DropRoute(digitalocean.DigitalOcean):
 
         # Cloudinit Setup
         self.ovpn_client_filename = "{0}_{1}_{2}".format(self.__class__.__name__, self.datacenter_slug, self.UUID)
+        if not os.path.exists("ovpn_keys"):
+            os.makedirs("ovpn_keys")
         self.ovpn_client_filepath = os.path.join("ovpn_keys", "{filename}.ovpn".format(filename=self.ovpn_client_filename))
         self.ovpn_client_serverport = randint(3000, 6000)
         self.ovpn_client_download_timeout = 300 #5 mins.
